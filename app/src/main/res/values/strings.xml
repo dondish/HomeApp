@@ -9,4 +9,5 @@
     <string name="scene1">XBOX</string>
     <string name="scene2">PS</string>
     <string name="scene3">STEAM</string>
+    <string name="mute">MUTE</string>
 </resources>
