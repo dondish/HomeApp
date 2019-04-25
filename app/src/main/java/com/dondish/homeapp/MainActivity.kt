@@ -5,6 +5,8 @@ import android.content.Context
 import android.hardware.ConsumerIrManager
 import android.support.v7.app.AppCompatActivity
 import android.os.Bundle
+import android.os.VibrationEffect
+import android.os.Vibrator
 import android.util.Log
 import android.view.MotionEvent
 import android.widget.Button
@@ -14,6 +16,8 @@ class MainActivity : AppCompatActivity() {
 
     private var irController: ConsumerIrManager? = null
 
+    private var vibrator: Vibrator? = null
+
     private val map = mapOf(
         Pair(R.id.avon, AV_ON),
         Pair(R.id.avstdby, AV_STDBY),
@@ -22,11 +26,14 @@ class MainActivity : AppCompatActivity() {
         Pair(R.id.scene2, PS),
         Pair(R.id.scene3, STEAM),
         Pair(R.id.volup, VOL_UP),
-        Pair(R.id.voldown, VOL_DOWN)
+        Pair(R.id.voldown, VOL_DOWN),
+        Pair(R.id.chup, CH_UP),
+        Pair(R.id.chdown, CH_DOWN),
+        Pair(R.id.mute, MUTE)
     )
 
     fun sendMessage(nec: IRMessage) {
-        irController?.transmit(nec.frequency, nec.message)
+        irController?.transmit(nec.frequency, nec.codes)
     }
 
     @SuppressLint("ClickableViewAccessibility")
@@ -36,21 +43,24 @@ class MainActivity : AppCompatActivity() {
 
         irController = getSystemService(Context.CONSUMER_IR_SERVICE) as ConsumerIrManager
 
+        vibrator = getSystemService(Context.VIBRATOR_SERVICE) as Vibrator
+
         for ((id, code) in map) {
             val v = findViewById<Button>(id)
 
             v.setOnTouchListener { view, event ->
                 when(event.action) {
                     MotionEvent.ACTION_DOWN-> {
+                        vibrator?.vibrate(60)
                         sendMessage(code)
                         view.performClick()
                         view.isPressed = true
                         CoroutineScope(Dispatchers.IO).launch {
-                                delay(40)
+                            delay(40)
                                 runBlocking {
                                     while (view.isPressed) {
-                                        sendMessage(REPEAT)
-                                        delay(97)
+                                        sendMessage(code)
+                                        delay(40)
                                     }
                                 }
                         }
